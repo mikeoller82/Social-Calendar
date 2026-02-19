@@ -2,6 +2,7 @@ import { ArrowUpRight, ArrowDownRight, Users, Eye, Heart, MousePointer, BarChart
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts';
 import { cn } from '@/utils/cn';
 import { useBootstrapData } from '@/hooks/useBootstrapData';
+import type { CompetitorItem } from '@/types/ai';
 
 interface AnalyticsProps {
   darkMode: boolean;
@@ -11,7 +12,8 @@ export function Analytics({ darkMode }: AnalyticsProps) {
   const { data } = useBootstrapData();
   const analyticsData = data?.analyticsData ?? [];
   const weeklyAnalytics = data?.weeklyAnalytics ?? [];
-  const competitorData = data?.competitorData ?? [];
+  const competitorData: CompetitorItem[] = data?.competitorData ?? [];
+
   const kpis = [
     { label: 'Total Followers', value: '24,583', change: '+12.3%', up: true, icon: Users, color: 'violet' },
     { label: 'Total Reach', value: '2.4M', change: '+18.7%', up: true, icon: Eye, color: 'blue' },
@@ -171,7 +173,7 @@ export function Analytics({ darkMode }: AnalyticsProps) {
                 </div>
                 <div className="mt-2 flex items-center gap-2">
                   <div className={cn('h-1.5 flex-1 rounded-full', darkMode ? 'bg-gray-800' : 'bg-gray-100')}>
-                    <div className="h-full rounded-full bg-violet-500" style={{ width: `${(comp.engagement / 5) * 100}%` }} />
+                    <div className="h-full rounded-full bg-violet-500" style={{ width: `${Math.min((comp.engagement / 6) * 100, 100)}%` }} />
                   </div>
                   <span className="flex items-center gap-0.5 text-xs text-emerald-500">
                     <ArrowUpRight className="h-3 w-3" />
