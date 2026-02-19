@@ -1,6 +1,7 @@
 import http from 'node:http';
 import { pathToFileURL } from 'node:url';
 import { extractJson, parseRequestBody } from './parsing.js';
+import { normalizeBootstrapData, normalizeGenerateContentData, normalizeResearchData } from './normalize.js';
 
 const port = Number(process.env.PORT || 8787);
 const model = process.env.OPENAI_MODEL || 'gpt-5.2';
@@ -52,30 +53,33 @@ export function createServer({ callResponses = callResponsesAPI } = {}) {
 
     try {
       if (req.method === 'GET' && req.url === '/api/bootstrap') {
-        const data = await callResponses(
+        const rawData = await callResponses(
           'Return only JSON for social trend app datasets.',
           'Return JSON with keys: trendingTopics, sampleCalendar, analyticsData, weeklyAnalytics, platformBreakdown, competitorData, contentPillarData, engagementByTime, nicheOptions, audienceOptions, toneOptions, marketOptions. Use realistic values and include 30 sampleCalendar items.'
         );
+        const data = normalizeBootstrapData(rawData);
         sendJson(res, 200, data);
         return;
       }
 
       if (req.method === 'POST' && req.url === '/api/research') {
         const body = await readBody(req);
-        const data = await callResponses(
+        const rawData = await callResponses(
           'You are a trend research strategist. Return only JSON.',
           `Generate 12 trending topics for niche ${body.niche || 'general'}, audience ${body.audience || 'general'}, market ${body.market || 'global'}, tone ${body.tone || 'educational'}. Return as {"trendingTopics":[...]} with id/topic/score/longevity/platforms/category/growth/volume/keywords.`
         );
+        const data = normalizeResearchData(rawData);
         sendJson(res, 200, data);
         return;
       }
 
       if (req.method === 'POST' && req.url === '/api/generate-content') {
         const body = await readBody(req);
-        const data = await callResponses(
+        const rawData = await callResponses(
           'You are an expert social copywriter. Return only JSON.',
           `Platform: ${body.platform}. Topic: ${body.topic}. Tone: ${body.tone}. Return JSON: {"fields":[...],"generated":{"field":"text"},"abVariation":string|null}`
         );
+        const data = normalizeGenerateContentData(rawData);
         sendJson(res, 200, data);
         return;
       }
