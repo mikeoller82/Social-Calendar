@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Search, TrendingUp, Filter, Zap, ArrowUpRight, Loader2, Globe, Users, Palette, Target } from 'lucide-react';
 import { cn } from '@/utils/cn';
-import { trendingTopics, nicheOptions, audienceOptions, toneOptions, marketOptions, platformIcons } from '@/data/mockData';
+import { api, platformIcons } from '@/lib/api';
+import { useBootstrapData } from '@/hooks/useBootstrapData';
 
 interface TrendEngineProps {
   darkMode: boolean;
@@ -14,18 +15,33 @@ export function TrendEngine({ darkMode }: TrendEngineProps) {
   const [tone, setTone] = useState('');
   const [isResearching, setIsResearching] = useState(false);
   const [showResults, setShowResults] = useState(true);
+  const [topics, setTopics] = useState([] as Array<any>);
+  const [error, setError] = useState<string | null>(null);
   const [filterPlatform, setFilterPlatform] = useState('All');
   const [filterLongevity, setFilterLongevity] = useState('All');
+  const { data } = useBootstrapData();
 
-  const handleResearch = () => {
+  const nicheOptions = data?.nicheOptions ?? [];
+  const audienceOptions = data?.audienceOptions ?? [];
+  const marketOptions = data?.marketOptions ?? [];
+  const toneOptions = data?.toneOptions ?? [];
+  const availableTopics = topics.length ? topics : (data?.trendingTopics ?? []);
+
+  const handleResearch = async () => {
     setIsResearching(true);
-    setTimeout(() => {
+    setError(null);
+    try {
+      const result = await api.research({ niche, audience, market, tone });
+      setTopics(result.trendingTopics);
       setIsResearching(false);
       setShowResults(true);
-    }, 2500);
+    } catch (e) {
+      setError((e as Error).message);
+      setIsResearching(false);
+    }
   };
 
-  const filteredTopics = trendingTopics.filter(t => {
+  const filteredTopics = availableTopics.filter(t => {
     if (filterPlatform !== 'All' && !t.platforms.includes(filterPlatform)) return false;
     if (filterLongevity !== 'All' && t.longevity !== filterLongevity) return false;
     return true;
@@ -116,6 +132,7 @@ export function TrendEngine({ darkMode }: TrendEngineProps) {
       {/* Results */}
       {showResults && !isResearching && (
         <>
+          {error && <p className="text-sm text-red-500">{error}</p>}
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-3">
             <Filter className={cn('h-4 w-4', darkMode ? 'text-gray-400' : 'text-gray-500')} />

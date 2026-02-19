@@ -1,13 +1,17 @@
 import { ArrowUpRight, ArrowDownRight, Users, Eye, Heart, MousePointer, BarChart3, Award, Target } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts';
 import { cn } from '@/utils/cn';
-import { analyticsData, weeklyAnalytics, competitorData } from '@/data/mockData';
+import { useBootstrapData } from '@/hooks/useBootstrapData';
 
 interface AnalyticsProps {
   darkMode: boolean;
 }
 
 export function Analytics({ darkMode }: AnalyticsProps) {
+  const { data } = useBootstrapData();
+  const analyticsData = data?.analyticsData ?? [];
+  const weeklyAnalytics = data?.weeklyAnalytics ?? [];
+  const competitorData = data?.competitorData ?? [];
   const kpis = [
     { label: 'Total Followers', value: '24,583', change: '+12.3%', up: true, icon: Users, color: 'violet' },
     { label: 'Total Reach', value: '2.4M', change: '+18.7%', up: true, icon: Eye, color: 'blue' },

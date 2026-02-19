@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Eye, Edit3, Download, ListFilter, LayoutGrid, List, Clock } from 'lucide-react';
 import { cn } from '@/utils/cn';
-import { sampleCalendar, platformIcons, type CalendarEvent } from '@/data/mockData';
+import { platformIcons } from '@/lib/api';
+import { useBootstrapData } from '@/hooks/useBootstrapData';
+import type { CalendarEvent } from '@/types/ai';
 
 interface CalendarViewProps {
   darkMode: boolean;
@@ -25,6 +27,8 @@ export function CalendarView({ darkMode }: CalendarViewProps) {
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'list'>('month');
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [currentWeek, setCurrentWeek] = useState(0);
+  const { data } = useBootstrapData();
+  const sampleCalendar = data?.sampleCalendar ?? [];
 
   const weeks = [
     sampleCalendar.slice(0, 7),
