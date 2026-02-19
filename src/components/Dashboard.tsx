@@ -2,6 +2,7 @@ import { TrendingUp, Eye, Zap, ArrowUpRight, ArrowDownRight, Sparkles, Target, G
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { cn } from '@/utils/cn';
 import { useBootstrapData } from '@/hooks/useBootstrapData';
+import type { EngagementByTime } from '@/types/ai';
 
 interface DashboardProps {
   darkMode: boolean;
@@ -15,7 +16,8 @@ export function Dashboard({ darkMode, setActiveTab }: DashboardProps) {
   const platformBreakdown = data?.platformBreakdown ?? [];
   const contentPillarData = data?.contentPillarData ?? [];
   const weeklyAnalytics = data?.weeklyAnalytics ?? [];
-  const engagementByTime = data?.engagementByTime ?? [];
+  const engagementByTime: EngagementByTime[] = data?.engagementByTime ?? [];
+
   const stats = [
     { label: 'Trending Topics', value: '47', change: '+12%', up: true, icon: TrendingUp, color: 'violet' },
     { label: 'Content Generated', value: '128', change: '+23%', up: true, icon: Sparkles, color: 'blue' },
@@ -29,6 +31,9 @@ export function Dashboard({ darkMode, setActiveTab }: DashboardProps) {
     emerald: { bg: 'bg-emerald-50', darkBg: 'bg-emerald-950/30', text: 'text-emerald-600', icon: 'bg-emerald-100 text-emerald-600' },
     amber: { bg: 'bg-amber-50', darkBg: 'bg-amber-950/30', text: 'text-amber-600', icon: 'bg-amber-100 text-amber-600' },
   };
+
+  // Day-of-week columns for the heatmap
+  const DOW_KEYS: Array<keyof EngagementByTime> = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
   return (
     <div className="space-y-6">
@@ -280,19 +285,22 @@ export function Dashboard({ darkMode, setActiveTab }: DashboardProps) {
               {engagementByTime.map(row => (
                 <tr key={row.time}>
                   <td className={cn('px-3 py-2 text-xs font-medium', darkMode ? 'text-gray-400' : 'text-gray-500')}>{row.time}</td>
-                  {[row.mon, row.tue, row.wed, row.thu, row.fri, row.sat, row.sun].map((val, i) => (
-                    <td key={i} className="px-1 py-1">
-                      <div className={cn(
-                        'mx-auto flex h-8 w-full items-center justify-center rounded-lg text-xs font-medium',
-                        val >= 80 ? 'bg-violet-500 text-white' :
-                        val >= 60 ? 'bg-violet-400/60 text-white' :
-                        val >= 40 ? (darkMode ? 'bg-violet-900/40 text-violet-300' : 'bg-violet-100 text-violet-700') :
-                        darkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-50 text-gray-400'
-                      )}>
-                        {val}
-                      </div>
-                    </td>
-                  ))}
+                  {DOW_KEYS.map((key) => {
+                    const val = row[key] as number;
+                    return (
+                      <td key={key} className="px-1 py-1">
+                        <div className={cn(
+                          'mx-auto flex h-8 w-full items-center justify-center rounded-lg text-xs font-medium',
+                          val >= 80 ? 'bg-violet-500 text-white' :
+                          val >= 60 ? 'bg-violet-400/60 text-white' :
+                          val >= 40 ? (darkMode ? 'bg-violet-900/40 text-violet-300' : 'bg-violet-100 text-violet-700') :
+                          darkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-50 text-gray-400'
+                        )}>
+                          {val}
+                        </div>
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
             </tbody>
