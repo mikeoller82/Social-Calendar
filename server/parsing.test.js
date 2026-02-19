@@ -18,6 +18,10 @@ test('extractJson supports markdown wrapped JSON and nested strings', () => {
   assert.deepEqual(extractJson(text), { ok: true, message: 'brace } inside' });
 });
 
+test('extractJson handles unicode characters before JSON payload', () => {
+  assert.deepEqual(extractJson('✅ Result: {"ok":true}'), { ok: true });
+});
+
 test('extractJson supports top-level arrays and throws on empty', () => {
   assert.deepEqual(extractJson('Result: [1,2,3]'), [1, 2, 3]);
   assert.throws(() => extractJson(''), /Model response was empty/);

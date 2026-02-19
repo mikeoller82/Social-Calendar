@@ -60,7 +60,7 @@ export function extractJson(text) {
     throw new Error('Model response was empty.');
   }
 
-  const startIndex = [...text].findIndex((char) => char === '{' || char === '[');
+  const startIndex = text.search(/[\[{]/);
   if (startIndex === -1) {
     throw new Error('No JSON object or array found in model response.');
   }
