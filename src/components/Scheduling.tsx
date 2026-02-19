@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Clock, Calendar, Globe, Download, Upload, ChevronRight, Zap, GripVertical, Check } from 'lucide-react';
 import { cn } from '@/utils/cn';
-import { sampleCalendar, platformIcons } from '@/data/mockData';
+import { platformIcons } from '@/lib/api';
+import { useBootstrapData } from '@/hooks/useBootstrapData';
 
 interface SchedulingProps {
   darkMode: boolean;
@@ -12,6 +13,8 @@ export function Scheduling({ darkMode }: SchedulingProps) {
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [scheduledItems, setScheduledItems] = useState<Set<number>>(new Set());
 
+  const { data } = useBootstrapData();
+  const sampleCalendar = data?.sampleCalendar ?? [];
   const upcomingPosts = sampleCalendar.slice(0, 14);
 
   const card = cn('rounded-2xl border p-6', darkMode ? 'border-gray-800 bg-gray-900/50' : 'border-gray-100 bg-white');

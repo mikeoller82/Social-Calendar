@@ -14,7 +14,7 @@ import {
   X, Menu, Bell, Search, Settings, User, Shield, Key,
   Monitor, Moon, Sun
 } from 'lucide-react';
-import { nicheOptions, audienceOptions, toneOptions, marketOptions } from '@/data/mockData';
+import { useBootstrapData } from '@/hooks/useBootstrapData';
 
 export function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -25,6 +25,11 @@ export function App() {
   const [onboardingStep, setOnboardingStep] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const { data } = useBootstrapData();
+  const nicheOptions = data?.nicheOptions ?? [];
+  const audienceOptions = data?.audienceOptions ?? [];
+  const marketOptions = data?.marketOptions ?? [];
+  const toneOptions = data?.toneOptions ?? [];
 
   // Onboarding state
   const [obNiche, setObNiche] = useState('');

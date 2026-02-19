@@ -1,7 +1,7 @@
 import { TrendingUp, Eye, Zap, ArrowUpRight, ArrowDownRight, Sparkles, Target, Globe } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { cn } from '@/utils/cn';
-import { trendingTopics, analyticsData, platformBreakdown, contentPillarData, weeklyAnalytics, engagementByTime } from '@/data/mockData';
+import { useBootstrapData } from '@/hooks/useBootstrapData';
 
 interface DashboardProps {
   darkMode: boolean;
@@ -9,6 +9,13 @@ interface DashboardProps {
 }
 
 export function Dashboard({ darkMode, setActiveTab }: DashboardProps) {
+  const { data } = useBootstrapData();
+  const trendingTopics = data?.trendingTopics ?? [];
+  const analyticsData = data?.analyticsData ?? [];
+  const platformBreakdown = data?.platformBreakdown ?? [];
+  const contentPillarData = data?.contentPillarData ?? [];
+  const weeklyAnalytics = data?.weeklyAnalytics ?? [];
+  const engagementByTime = data?.engagementByTime ?? [];
   const stats = [
     { label: 'Trending Topics', value: '47', change: '+12%', up: true, icon: TrendingUp, color: 'violet' },
     { label: 'Content Generated', value: '128', change: '+23%', up: true, icon: Sparkles, color: 'blue' },
