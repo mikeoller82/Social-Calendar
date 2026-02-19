@@ -27,12 +27,12 @@ test('end-to-end server routes work with parsing and validation', async () => {
   const server = createServer({
     callResponses: async (_instructions, input) => {
       if (input.includes('Return JSON with keys')) {
-        return { trendingTopics: [], sampleCalendar: [] };
+        return { trending_topics: [{ id: 1, topic: 'AI content' }], sample_calendar: [] };
       }
       if (input.includes('Generate 12 trending topics')) {
-        return { trendingTopics: [{ id: 1, topic: 'AI content' }] };
+        return { trending_topics: [{ id: 1, topic: 'AI content' }] };
       }
-      return { fields: ['caption'], generated: { caption: 'hello' }, abVariation: null };
+          return { fieldNames: ['caption'], generatedContent: { caption: 'hello' }, ab_variant: 'alt' };
     },
   });
 
@@ -42,7 +42,20 @@ test('end-to-end server routes work with parsing and validation', async () => {
 
   const bootstrapRes = await fetch(`${baseUrl}/api/bootstrap`);
   assert.equal(bootstrapRes.status, 200);
-  assert.deepEqual(await bootstrapRes.json(), { trendingTopics: [], sampleCalendar: [] });
+  assert.deepEqual(await bootstrapRes.json(), {
+    trendingTopics: [{ id: 1, topic: 'AI content' }],
+    sampleCalendar: [],
+    analyticsData: [],
+    weeklyAnalytics: [],
+    platformBreakdown: [],
+    competitorData: [],
+    contentPillarData: [],
+    engagementByTime: [],
+    nicheOptions: [],
+    audienceOptions: [],
+    toneOptions: [],
+    marketOptions: [],
+  });
 
   const researchRes = await fetch(`${baseUrl}/api/research`, {
     method: 'POST',
@@ -67,6 +80,11 @@ test('end-to-end server routes work with parsing and validation', async () => {
     body: JSON.stringify({ platform: 'LinkedIn', topic: 'AI', tone: 'educational' }),
   });
   assert.equal(genRes.status, 200);
+  assert.deepEqual(await genRes.json(), {
+    fields: ['caption'],
+    generated: { caption: 'hello' },
+    abVariation: 'alt',
+  });
 
   await new Promise((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
 });
