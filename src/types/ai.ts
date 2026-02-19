@@ -25,6 +25,9 @@ export interface CalendarEvent {
   contentPillar: 'viral' | 'authority' | 'community' | 'conversion';
   engagementPrediction: number;
   status: 'draft' | 'scheduled' | 'published' | 'generating';
+  script?: string;
+  slides?: string[];
+  threadParts?: string[];
 }
 
 export interface AnalyticsData {
@@ -35,15 +38,40 @@ export interface AnalyticsData {
   clicks: number;
 }
 
+export interface CompetitorItem {
+  name: string;
+  followers: number;
+  posts: number;
+  engagement: number;
+  growth: number;
+}
+
+export interface EngagementByTime {
+  time: string;
+  mon: number;
+  tue: number;
+  wed: number;
+  thu: number;
+  fri: number;
+  sat: number;
+  sun: number;
+}
+
+export interface WeeklyAnalytic {
+  week: string;
+  engagement: number;
+  followers: number;
+}
+
 export interface BootstrapData {
   trendingTopics: TrendItem[];
   sampleCalendar: CalendarEvent[];
   analyticsData: AnalyticsData[];
-  weeklyAnalytics: Array<{ week: string; engagement: number; reach: number }>;
+  weeklyAnalytics: WeeklyAnalytic[];
   platformBreakdown: Array<{ name: string; value: number; color: string }>;
-  competitorData: Array<{ name: string; you: number; competitor: number }>;
+  competitorData: CompetitorItem[];
   contentPillarData: Array<{ name: string; value: number; color: string }>;
-  engagementByTime: Array<{ time: string; engagement: number }>;
+  engagementByTime: EngagementByTime[];
   nicheOptions: string[];
   audienceOptions: string[];
   toneOptions: string[];
