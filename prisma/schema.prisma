@@ -1,0 +1,302 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── User & Workspace ────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  avatarUrl String?
+  plan      Plan     @default(FREE)
+  credits   Int      @default(500)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+  workspaceId String?
+
+  contentItems  ContentItem[]
+  scheduledPosts ScheduledPost[]
+  aiJobs        AiJob[]
+
+  @@map("users")
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  niche     String?
+  audience  String?
+  market    String?
+  tone      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users        User[]
+  trendReports TrendReport[]
+  contentItems ContentItem[]
+  analytics    DashboardStats[]
+
+  @@map("workspaces")
+}
+
+enum Plan {
+  FREE
+  PRO
+  TEAM
+}
+
+// ─── Dashboard Stats (replaces hardcoded KPIs) ───────────────────────────────
+
+model DashboardStats {
+  id               String   @id @default(cuid())
+  workspaceId      String
+  workspace        Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  // The 4 KPI cards
+  trendingTopicsCount  Int      @default(0)
+  contentGeneratedCount Int     @default(0)
+  totalReach           BigInt   @default(0)
+  engagementRate       Float    @default(0)
+
+  // % change vs previous period
+  trendingTopicsChange  Float   @default(0)
+  contentGeneratedChange Float  @default(0)
+  totalReachChange       Float  @default(0)
+  engagementRateChange   Float  @default(0)
+
+  periodStart DateTime
+  periodEnd   DateTime
+  createdAt   DateTime @default(now())
+
+  @@unique([workspaceId, periodStart])
+  @@map("dashboard_stats")
+}
+
+// ─── Analytics timeseries ────────────────────────────────────────────────────
+
+model AnalyticsDay {
+  id          String   @id @default(cuid())
+  workspaceId String
+  date        DateTime @db.Date
+  engagement  Int      @default(0)
+  reach       Int      @default(0)
+  followers   Int      @default(0)
+  clicks      Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@unique([workspaceId, date])
+  @@map("analytics_days")
+}
+
+model WeeklyAnalytic {
+  id          String   @id @default(cuid())
+  workspaceId String
+  weekLabel   String   // e.g. "W1", "Apr 14"
+  weekStart   DateTime @db.Date
+  engagement  Int      @default(0)
+  followers   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@unique([workspaceId, weekStart])
+  @@map("weekly_analytics")
+}
+
+model PlatformStat {
+  id          String   @id @default(cuid())
+  workspaceId String
+  platform    String
+  percentage  Float
+  color       String
+  recordedAt  DateTime @default(now())
+
+  @@map("platform_stats")
+}
+
+model EngagementHeatmap {
+  id          String   @id @default(cuid())
+  workspaceId String
+  timeSlot    String   // e.g. "9:00 AM"
+  mon         Int      @default(0)
+  tue         Int      @default(0)
+  wed         Int      @default(0)
+  thu         Int      @default(0)
+  fri         Int      @default(0)
+  sat         Int      @default(0)
+  sun         Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([workspaceId, timeSlot])
+  @@map("engagement_heatmaps")
+}
+
+// ─── Trend Research ──────────────────────────────────────────────────────────
+
+model TrendReport {
+  id          String   @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  niche    String?
+  audience String?
+  market   String?
+  tone     String?
+
+  topics    TrendTopic[]
+  createdAt DateTime @default(now())
+
+  @@map("trend_reports")
+}
+
+model TrendTopic {
+  id       String @id @default(cuid())
+  reportId String
+  report   TrendReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  topic     String
+  score     Int
+  longevity String // short-term | mid-term | evergreen
+  platforms String[]
+  category  String
+  growth    Float
+  volume    String
+  keywords  String[]
+  createdAt DateTime @default(now())
+
+  @@map("trend_topics")
+}
+
+// ─── Content Items ───────────────────────────────────────────────────────────
+
+model ContentItem {
+  id          String   @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  platform      String
+  postType      String
+  theme         String
+  hook          String   @db.Text
+  caption       String   @db.Text
+  hashtags      String[]
+  cta           String
+  bestTime      String
+  contentPillar String
+  engagementPrediction Int @default(50)
+  status        ContentStatus @default(DRAFT)
+
+  // Optional extended fields
+  script       String?  @db.Text
+  slides       String[]
+  threadParts  String[]
+
+  // Calendar placement
+  scheduledDay  Int?
+  scheduledDate DateTime? @db.Date
+
+  scheduledPost ScheduledPost?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("content_items")
+}
+
+enum ContentStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  GENERATING
+}
+
+// ─── Scheduled Posts ─────────────────────────────────────────────────────────
+
+model ScheduledPost {
+  id            String      @id @default(cuid())
+  contentItemId String      @unique
+  contentItem   ContentItem @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+
+  scheduledAt DateTime
+  timezone    String   @default("America/New_York")
+  publishedAt DateTime?
+  status      ScheduleStatus @default(PENDING)
+
+  inngestEventId String?  // track the Inngest job
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("scheduled_posts")
+}
+
+enum ScheduleStatus {
+  PENDING
+  PROCESSING
+  PUBLISHED
+  FAILED
+}
+
+// ─── AI Jobs (Inngest tracking) ───────────────────────────────────────────────
+
+model AiJob {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+
+  jobType     AiJobType
+  status      JobStatus @default(PENDING)
+  creditsUsed Int       @default(0)
+  payload     Json
+  result      Json?
+  error       String?
+
+  inngestRunId String?
+
+  createdAt   DateTime @default(now())
+  completedAt DateTime?
+
+  @@map("ai_jobs")
+}
+
+enum AiJobType {
+  BOOTSTRAP
+  TREND_RESEARCH
+  CONTENT_GENERATION
+  ANALYTICS_REFRESH
+  STATS_ROLLUP
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+// ─── Competitors ─────────────────────────────────────────────────────────────
+
+model CompetitorProfile {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  followers   Int      @default(0)
+  postsPerMonth Int    @default(0)
+  engagementRate Float @default(0)
+  growthRate   Float   @default(0)
+  isYou        Boolean @default(false)
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+
+  @@map("competitor_profiles")
+}
